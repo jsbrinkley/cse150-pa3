@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+from p1_is_complete import is_complete
+from p2_is_consistent import is_consistent
+from p5_ordering import select_unassigned_variable
+from p5_ordering import order_domain_values
+
 
 from collections import deque
 
@@ -31,8 +36,39 @@ def backtrack(csp):
     If there is a solution, this method returns True; otherwise, it returns False.
     """
 
-    # TODO copy from p3
-    return False
+    # TODO implement this
+
+    # csp.variables.begin_transaction()
+    # Do whatever
+    if is_complete(csp):
+        return True
+
+    # get the next unassigned variable
+    var = select_unassigned_variable(csp)
+
+    result = False
+    orderedDomain = order_domain_values(csp, var)
+    # for each value in var
+    for value in orderedDomain:
+        if is_consistent(csp, var, value):
+            # call inference
+            # if inference returned true
+            csp.variables.begin_transaction()
+            # assign both? value assign and add to dictionary?
+            var.assign(value)
+
+            if inference(csp, var):
+                # csp.assignment[var] = value
+
+                result = backtrack(csp)
+                if result:
+                    return result
+            # csp.assignment.pop(var) # back one indentation?
+
+            csp.variables.rollback()
+
+    # csp.variables.rollback()
+    return None
 
 
 def ac3(csp, arcs=None):
@@ -44,10 +80,47 @@ def ac3(csp, arcs=None):
 
     Note that the current domain of each variable can be retrieved by 'variable.domains'.
 
-    This method returns True if the arc consistency check succeeds, and False otherwise.  Note that this method does not
-    return any additional variable assignments (for simplicity)."""
+    This method returns True if the arc consistency check succeeds, and False otherwise."""
 
     queue_arcs = deque(arcs if arcs is not None else csp.constraints.arcs())
 
-    # TODO copy from p4
-    pass
+    size = len(queue_arcs)
+
+    while size > 0:
+        xi, xj = queue_arcs.popleft()
+
+        if revise(csp, xi, xj):
+            if len(xi.domain) == 0:
+                return False
+
+            for constraint in csp.constraints[xi]:
+                x_neighbor = constraint.var2
+
+                if x_neighbor != xj:
+                    queue_arcs.append((x_neighbor, xi))
+
+        size = len(queue_arcs)
+
+    return True
+
+
+def revise(csp, xi, xj):
+    # You may additionally want to implement the 'revise' method.
+    revised = False
+
+    constraints = csp.constraints[xi]
+    constraint = constraints[0]
+
+    for x in xi.domain:
+
+        satisfied = False
+
+        for y in xj.domain:
+            if constraint.is_satisfied(x, y):
+                satisfied = True
+
+        if not satisfied:
+            xi.domain.remove(x)
+            revised = True
+
+    return revised
