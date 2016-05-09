@@ -2,7 +2,6 @@
 
 from collections import deque
 
-
 def ac3(csp, arcs=None):
     """Executes the AC3 or the MAC (p.218 of the textbook) algorithms.
 
@@ -16,9 +15,38 @@ def ac3(csp, arcs=None):
 
     queue_arcs = deque(arcs if arcs is not None else csp.constraints.arcs())
 
-    # TODO implement this
-    pass
+    while queue_arcs:
+        xi, xj = queue_arcs.popleft()
+
+        if revise(csp, xi, xj):
+            if len(xi.domain) == 0:
+                return False
+
+            for constraint in csp.constraints[xi]:
+                x_neighbor = constraint.var2
+
+                if x_neighbor != xj:
+                    queue_arcs.append((x_neighbor, xi))
+
+    return True
 
 def revise(csp, xi, xj):
     # You may additionally want to implement the 'revise' method.
-    pass
+    revised = False
+
+    constraints = csp.constraints[xi]
+    constraint = constraints[0]
+
+    for x in xi.domain:
+
+        satisfied = False
+
+        for y in xj.domain:
+            if constraint.is_satisfied(x, y):
+                satisfied = True
+
+        if not satisfied:
+            xi.domain.remove(x)
+            revised = True
+
+    return revised
