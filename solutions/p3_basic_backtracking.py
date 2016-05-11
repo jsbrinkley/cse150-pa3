@@ -48,10 +48,6 @@ def backtrack(csp):
     If there is a solution, this method returns True; otherwise, it returns False.
     """
 
-    # TODO implement this
-    
-    #csp.variables.begin_transaction()
-    # Do whatever
     if is_complete(csp):
         return True
 
@@ -63,20 +59,18 @@ def backtrack(csp):
     # for each value in var
     for value in orderedDomain:
         if is_consistent(csp, var, value):
-            #call inference
-            #if inference returned true
-            csp.variables.begin_transaction()
-            # assign both? value assign and add to dictionary?
-            var.assign(value)
-            #csp.assignment[var] = value
 
-            result = backtrack(csp)
-            if result:
-                return result
-            #csp.assignment.pop(var) # back one indentation?
+            csp.variables.begin_transaction()
+
+            var.assign(value)
+            
+            if inference(csp, var):
+                result = backtrack(csp)
+                if result:
+                    return result
+
             csp.variables.rollback()
     
-    #csp.variables.rollback()
     return None
 
 

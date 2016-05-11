@@ -28,13 +28,22 @@ def select_unassigned_variable(csp):
         elif len(var.domain) == min_domain:
             mrv_list.append(var)
 
-    min_const = sys.maxint
-    min_var = None
-    for var in mrv_list:
+    max_const = -1
+    max_var = None
+    """for var in mrv_list:
         if len(csp.constraints[var]) < min_const:
             min_var = var
+    """
+    
+    for var in mrv_list:
+        unassigned_constraints = []
+        for constraint in csp.constraints[var]:
+            if not constraint.var2.is_assigned():
+                unassigned_constraints.append(constraint)
+        if len(unassigned_constraints) > max_const:
+            max_var = var
 
-    return min_var
+    return max_var
 
 def order_domain_values(csp, variable):
     """Returns a list of (ordered) domain values for the given variable.
